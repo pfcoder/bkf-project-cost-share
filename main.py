@@ -61,7 +61,10 @@ for i in range(5, projectSheet.max_row + 1):
     #first column iteration to count month salary share
     for fi in range(5, projectSheet.max_column + 1):
         projectActionStatus = projectSheet.cell(row=i, column=fi).value
-        if not projectActionStatus is None:
+        if isinstance(projectActionStatus, str):
+            projectActionStatus = projectActionStatus.strip();
+
+        if not projectActionStatus is None and projectActionStatus != "":
             # start count
             # get salary info of project start to end
             startDate = projectSheet.cell(row=3, column=fi).value
@@ -69,15 +72,27 @@ for i in range(5, projectSheet.max_row + 1):
 
             (cS, cE) = locateProjectStartIdx(startDate, endDate)
             if cS != 0:
+                monthes = [];
+                if projectActionStatus != 0:
+                    monthes = set(map(lambda x: int(x) + 1, projectActionStatus.split(" ")))
+
+
                 for csIdx in range(cS, cE + 1):
-                    salaryShare[csIdx] += 1
+                    # check only specify month index case
+                    if projectActionStatus == 0 or csIdx in monthes:
+                        salaryShare[csIdx] += 1
+
+
 
     # get project id
     for j in range(5, projectSheet.max_column + 1):
         projectNo = projectSheet.cell(row=2, column=j).value
         projectActionStatus = projectSheet.cell(row=i, column=j).value
+        if isinstance(projectActionStatus, str):
+            projectActionStatus = projectActionStatus.strip();
+
         emName = projectSheet.cell(row=i, column=2).value
-        if not projectActionStatus is None:
+        if not projectActionStatus is None and projectActionStatus != "":
             # start count
             # get salary info of project start to end
             startDate = projectSheet.cell(row=3, column=j).value
@@ -89,16 +104,22 @@ for i in range(5, projectSheet.max_row + 1):
                 salaryCount = 0
                 print("emName:", emName)
                 sRowIndx = locateEmployee(emName)
+
+                monthes = [];
+                if projectActionStatus != 0:
+                    monthes = set(map(lambda x: int(x) + 1, projectActionStatus.split(" ")))
+
                 for k in range(cS, cE + 1):
                     monthSalary = salarySheet.cell(row=sRowIndx, column=k).value
                     if monthSalary is None:
                         monthSalary = 0
                     actualShare = monthSalary / salaryShare[k]
 
-                    if not projectNo in project_fee_map:
-                        project_fee_map[projectNo] = [0] * 36 # 3years
+                    if projectActionStatus == 0 or k in monthes:
+                        if not projectNo in project_fee_map:
+                            project_fee_map[projectNo] = [0] * 36 # 3years
 
-                    project_fee_map[projectNo][k] += actualShare
+                        project_fee_map[projectNo][k] += actualShare
 
             #print("account:", project_fee_map[projectNo])
 
