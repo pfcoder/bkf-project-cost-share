@@ -41,7 +41,7 @@ def locateProjectStartIdx(startDate, endDate):
 
     if endDate < validEnd:
         endDiff = relativedelta.relativedelta(validEnd, endDate)
-        salarySheetEndColum -= endDiff.months + (12 * endDiff.years) + 1
+        salarySheetEndColum -= endDiff.months + (12 * endDiff.years)
 
     #validateion check
     if 0 < salarySheetStartColum <= salarySheet.max_column and salarySheetStartColum <= salarySheetEndColum <= salarySheet.max_column:
@@ -56,7 +56,7 @@ for i in range(5, projectSheet.max_row + 1):
     print(nameCell.value)
 
     if nameCell.value is None:
-       continue
+        continue
 
     salaryShare = [0] * (salarySheet.max_column + 1)
     #first column iteration to count month salary share
