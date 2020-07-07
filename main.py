@@ -41,7 +41,7 @@ def locateProjectStartIdx(startDate, endDate):
 
     if endDate < validEnd:
         endDiff = relativedelta.relativedelta(validEnd, endDate)
-        salarySheetEndColum -= endDiff.months + (12 * endDiff.years)
+        salarySheetEndColum -= endDiff.months + (12 * endDiff.years) + 1
 
     #validateion check
     if 0 < salarySheetStartColum <= salarySheet.max_column and salarySheetStartColum <= salarySheetEndColum <= salarySheet.max_column:
