@@ -114,9 +114,9 @@ for i in range(5, projectSheet.max_row + 1):
                     monthSalary = salarySheet.cell(row=sRowIndx, column=k).value
                     if monthSalary is None:
                         monthSalary = 0
-                    actualShare = monthSalary / salaryShare[k]
 
                     if projectActionStatus == 0 or k in monthes:
+                        actualShare = monthSalary / salaryShare[k]
                         if not projectNo in project_fee_map:
                             project_fee_map[projectNo] = [0] * 36 # 3years
 
