@@ -111,9 +111,9 @@ def processSource(wb, fileName):
             code = contractCell.value
             updateResultDict(contractResultDict, employeeDict, 1, name, code, hours)
 
-    print(employeeDict)
-    print(projectResultDict)
-    print(contractResultDict)
+    #print(employeeDict)
+    #print(projectResultDict)
+    #print(contractResultDict)
 
     # store error record
     missPrjName = set()
@@ -151,8 +151,11 @@ def processSource(wb, fileName):
 
             contractResultDict[code]['cost'] = [round(i + j, 2) for i, j in zip(contractResultDict[code]['cost'], compute)]
 
-    print(projectResultDict)
-    print(contractResultDict)
+    #print(projectResultDict)
+    #print(contractResultDict)
+
+    print(".")
+    print("--------------------------------")
 
     if len(missPrjName) > 0:
         print("{} 缺少以下研发人员薪资信息：{}".format(fileName, missPrjName))
@@ -160,8 +163,8 @@ def processSource(wb, fileName):
     if len(missContractName) > 0:
         print("{} 缺少以下实施人员薪资信息：{}".format(fileName, missContractName))
 
-    #if len(missPrjName) > 0 or len(missContractName) > 0:
-    #    sys.exit(0)
+    if len(missPrjName) > 0 or len(missContractName) > 0:
+        sys.exit(0)
 
     # write out result excel
     resultPrjSheetName = "项目汇总"
