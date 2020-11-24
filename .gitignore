@@ -130,3 +130,9 @@ dmypy.json
 
 *.xlsx
 *.xls
+timecard_input/*.xlsx
+timecard_input/*.xls
+timecard_output/*.xlsx
+timecard_output/*.xls
+
+.DS_Store
