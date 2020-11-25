@@ -1,6 +1,4 @@
 from openpyxl import load_workbook
-from dateutil import relativedelta
-from datetime import datetime
 import os
 import sys
 
@@ -25,7 +23,6 @@ def init():
 
 
 def loadPayInfo(sheet):
-    # print("load payInfo of {}".format(sheet))
     result = {}
     for i in range(3, sheet.max_row + 1):
         name = sheet.cell(row=i, column=1).value
@@ -74,11 +71,9 @@ def processSource(wb, fileName):
 
     # load contract pay info
     contractPayInfo = loadPayInfo(contractPayInfosSheet)
-    # print(contractPayInfo)
 
     # load project pay info
     projectPayInfo = loadPayInfo(projectPayInfosSheet)
-    # print(projectPayInfo)
 
     # go through timeRecordsSheet row by row
     for i in range(2, timeRecordsSheet.max_row + 1):
@@ -111,10 +106,6 @@ def processSource(wb, fileName):
             code = contractCell.value
             updateResultDict(contractResultDict, employeeDict, 1, name, code, hours)
 
-    #print(employeeDict)
-    #print(projectResultDict)
-    #print(contractResultDict)
-
     # store error record
     missPrjName = set()
     missContractName = set()
@@ -125,37 +116,27 @@ def processSource(wb, fileName):
         prjDict = employeeDict[name]['prjDict']
         contractDict = employeeDict[name]['contractDict']
         employeeMonthHours = employeeDict[name]['totalHours']
-        for code in prjDict:
-            prjHours = prjDict[code]
+
+        def updateResult(codeInter, dictOrg, dictUpdate, payInfo, miss):
+            prjHours = dictOrg[codeInter]
             rate = prjHours / employeeMonthHours
 
-            if name not in projectPayInfo:
-                missPrjName.add(name)
-                continue
+            if name not in payInfo:
+                miss.add(name)
+                return False
 
-            employeePrjPayInfo = projectPayInfo[name]
-            compute = [p * rate for p in employeePrjPayInfo]
+            compute = [p * rate for p in payInfo[name]]
 
-            projectResultDict[code]['cost'] = [round(i + j, 2) for i, j in zip(projectResultDict[code]['cost'], compute)]
+            dictUpdate[codeInter]['cost'] = [round(a + b, 2) for a, b in zip(dictUpdate[codeInter]['cost'], compute)]
+            return True
 
-        for code in contractDict:
-            prjHours = contractDict[code]
-            rate = prjHours / employeeMonthHours
+        for prjCode in prjDict:
+            updateResult(prjCode, prjDict, projectResultDict, projectPayInfo, missPrjName)
 
-            if name not in contractPayInfo:
-                missContractName.add(name)
-                continue
+        for contractCode in contractDict:
+            updateResult(contractCode, contractDict, contractResultDict, contractPayInfo, missContractName)
 
-            employeeContractPayInfo = contractPayInfo[name]
-            compute = [p * rate for p in employeeContractPayInfo]
-
-            contractResultDict[code]['cost'] = [round(i + j, 2) for i, j in zip(contractResultDict[code]['cost'], compute)]
-
-    #print(projectResultDict)
-    #print(contractResultDict)
-
-    print(".")
-    print("--------------------------------")
+    print("\n--------------------------------")
 
     if len(missPrjName) > 0:
         print("{} 缺少以下研发人员薪资信息：{}".format(fileName, missPrjName))
@@ -163,8 +144,8 @@ def processSource(wb, fileName):
     if len(missContractName) > 0:
         print("{} 缺少以下实施人员薪资信息：{}".format(fileName, missContractName))
 
-    if len(missPrjName) > 0 or len(missContractName) > 0:
-        sys.exit(0)
+    #if len(missPrjName) > 0 or len(missContractName) > 0:
+    #    sys.exit(0)
 
     # write out result excel
     resultPrjSheetName = "项目汇总"
@@ -180,16 +161,26 @@ def processSource(wb, fileName):
     updateTarget(wb, resultContractSheetName, contractResultDict)
 
     wb.save(outputPath + fileName)
+    print("\n输出结果至：{}".format(outputPath + fileName))
 
 
 def updateTarget(wb, title, dict):
     targetSheet = wb.create_sheet(title=title)
     targetSheet.append(["代号", "总工时", "个人工资", "单位养老", "单位失业", "单位工伤", "单位生育", "单位医疗", "单位公积金"])
 
-    for code in dict:
-        row = [code, dict[code]['hours']]
-        row += dict[code]['cost']
-        targetSheet.append(row)
+    rows = sorted(dict.items(), key=lambda item: item[0])
+    sumRow = ['累加', 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+    for row in rows:
+        print(".", end='')
+        cell_row = [row[0], row[1]['hours']]
+        cell_row += row[1]['cost']
+        targetSheet.append(cell_row)
+        sumRow[1] += row[1]['hours']
+        for i in range(0, 7):
+            sumRow[i + 2] += row[1]['cost'][i]
+
+    targetSheet.append(sumRow)
 
 
 init()
