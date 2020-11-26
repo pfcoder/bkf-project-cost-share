@@ -24,13 +24,22 @@ def init():
 
 
 def loadPayInfo(sheet):
+    print("开始预处理薪资表 {}\r".format(sheet.title))
     result = {}
-    for i in range(3, sheet.max_row + 1):
+    for i in range(2, sheet.max_row + 1):
+        print("\r预处理薪资：{}".format(i), end='')
         name = sheet.cell(row=i, column=1).value
         result[name] = []
         for j in range(2, sheet.max_column + 1):
-            result[name].append(sheet.cell(row=i, column=j).value)
+            try:
+                payItem = float(sheet.cell(row=i, column=j).value)
+            except Exception as e:
+                print("\r薪资表包含无效数字：{}".format(sheet.cell(row=i, column=j).value))
+                sys.exit(0)
 
+            result[name].append(payItem)
+
+    print("\r预处理薪资表结束\r")
     return result
 
 
@@ -181,7 +190,7 @@ def updateTarget(wb, title, dict):
     sumRow = ['累加', 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
     for row in rows:
-        #print(".", end='')
+        print("\r生成结果：{}".format(row[0]), end='')
         cell_row = [row[0], row[1]['hours']]
         cell_row += row[1]['cost']
         targetSheet.append(cell_row)
