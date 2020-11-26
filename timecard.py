@@ -1,6 +1,7 @@
 from openpyxl import load_workbook
 import os
 import sys
+import time
 
 basePath = "timecard_input/"
 outputPath = "timecard_output/"
@@ -78,7 +79,11 @@ def processSource(wb, fileName):
     # go through timeRecordsSheet row by row
     for i in range(2, timeRecordsSheet.max_row + 1):
         name = timeRecordsSheet.cell(row=i, column=1).value;
-        print(".", end='')
+        print("\r预处理：{} {}".format(i, name), end='')
+
+        if isEmptyCell(timeRecordsSheet.cell(row=i, column=1)):
+            print("该表预处理完成")
+            break
 
         # check project or contract
         prjCell = timeRecordsSheet.cell(row=i, column=25)
@@ -87,7 +92,11 @@ def processSource(wb, fileName):
             print("发现项目和合同同时存在：{} {} {} 请改正".format(name, prjCell.value, contractCell.value))
             sys.exit(0)
 
-        hours = float(timeRecordsSheet.cell(row=i, column=3).value)
+        try:
+            hours = float(timeRecordsSheet.cell(row=i, column=3).value)
+        except Exception as e:
+            print("忽略无效工时记录：{}".format(i, name, timeRecordsSheet.cell(row=i, column=3).value))
+            continue
 
         if name not in employeeDict:
             employeeDict[name] = {
@@ -172,7 +181,7 @@ def updateTarget(wb, title, dict):
     sumRow = ['累加', 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
     for row in rows:
-        print(".", end='')
+        #print(".", end='')
         cell_row = [row[0], row[1]['hours']]
         cell_row += row[1]['cost']
         targetSheet.append(cell_row)
