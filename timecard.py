@@ -47,7 +47,7 @@ def loadPayInfo(sheet):
 
             result[name].append(payItem)
 
-    print(result)
+    #print(result)
     print("\r预处理薪资表结束\r")
     return result
 
