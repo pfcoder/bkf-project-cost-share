@@ -11,11 +11,11 @@ PAYINFO_START_COLUMN = 3
 PAYINFO_ITEM_NUM = 7
 TIMERECORDS_NAME_COLUMN = 1
 TIMERECORDS_TIME_COLUMN = 6
-TIMERECORDS_PRJ_COLUM = 26
+TIMERECORDS_PRJ_COLUMN = 26
 TIMERECORDS_CONTRACT_COLUMN = 19
 
-def init():
 
+def init():
     # load all source excel from specified dirs
     sources = os.listdir(basePath)
     print(sources)
@@ -24,9 +24,7 @@ def init():
         fileName = sources[i]
         if not fileName.endswith('.xlsx') or fileName.startswith('~'):
             continue
-
         print("start process:{}".format(fileName))
-
         wb = load_workbook(basePath + fileName)
         processSource(wb, fileName)
 
@@ -44,10 +42,8 @@ def loadPayInfo(sheet):
             except Exception as e:
                 print("\r薪资表包含无效数字：{}".format(sheet.cell(row=i, column=j).value))
                 sys.exit(0)
-
             result[name].append(payItem)
-
-    #print(result)
+    # print(result)
     print("\r预处理薪资表结束\r")
     return result
 
@@ -80,34 +76,26 @@ def processSource(wb, fileName):
     # result dict
     projectResultDict = {}
     contractResultDict = {}
-
     # some count store, dict key is employee name, store total working hours
     employeeDict = {}
-
     timeRecordsSheet = wb[wb.sheetnames[0]]
     contractPayInfosSheet = wb[wb.sheetnames[1]]
     projectPayInfosSheet = wb[wb.sheetnames[2]]
-
     # load contract pay info
     contractPayInfo = loadPayInfo(contractPayInfosSheet)
-
     # load project pay info
     projectPayInfo = loadPayInfo(projectPayInfosSheet)
-
     # go through timeRecordsSheet row by row
     for i in range(2, timeRecordsSheet.max_row + 1):
         nameCell = timeRecordsSheet.cell(row=i, column=TIMERECORDS_NAME_COLUMN)
         name = nameCell.value;
         print("\r预处理：{} {}".format(i, name), end='')
-
         if isEmptyCell(nameCell):
             print("\r该表预处理完成")
             break
-
         # check project or contract
-        prjCell = timeRecordsSheet.cell(row=i, column=TIMERECORDS_PRJ_COLUM)
+        prjCell = timeRecordsSheet.cell(row=i, column=TIMERECORDS_PRJ_COLUMN)
         contractCell = timeRecordsSheet.cell(row=i, column=TIMERECORDS_CONTRACT_COLUMN)
-
         try:
             hourCell = timeRecordsSheet.cell(row=i, column=TIMERECORDS_TIME_COLUMN)
             hours = float(hourCell.value)
@@ -135,7 +123,6 @@ def processSource(wb, fileName):
     # store error record
     missPrjName = set()
     missContractName = set()
-
     # now start calculate
     # go through employee dict
     for name in employeeDict:
@@ -152,7 +139,6 @@ def processSource(wb, fileName):
                 return False
 
             compute = [p * rate for p in payInfo[name]]
-
             dictUpdate[codeInter]['cost'] = [round(a + b, 2) for a, b in zip(dictUpdate[codeInter]['cost'], compute)]
             return True
 
@@ -163,15 +149,10 @@ def processSource(wb, fileName):
             updateResult(contractCode, contractDict, contractResultDict, contractPayInfo, missContractName)
 
     print("\n--------------------------------")
-
     if len(missPrjName) > 0:
         print("{} 缺少以下研发人员薪资信息：{}".format(fileName, missPrjName))
-
     if len(missContractName) > 0:
         print("{} 缺少以下实施人员薪资信息：{}".format(fileName, missContractName))
-
-    #if len(missPrjName) > 0 or len(missContractName) > 0:
-    #    sys.exit(0)
 
     # write out result excel
     resultPrjSheetName = "项目汇总"
@@ -179,13 +160,11 @@ def processSource(wb, fileName):
 
     if resultPrjSheetName in wb.sheetnames:
         del wb[resultPrjSheetName]
-
     if resultContractSheetName in wb.sheetnames:
         del wb[resultContractSheetName]
 
     updateTarget(wb, resultPrjSheetName, projectResultDict)
     updateTarget(wb, resultContractSheetName, contractResultDict)
-
     wb.save(outputPath + fileName)
     print("\n输出结果至：{}".format(outputPath + fileName))
 
@@ -193,7 +172,6 @@ def processSource(wb, fileName):
 def updateTarget(wb, title, dict):
     targetSheet = wb.create_sheet(title=title)
     targetSheet.append(["代号", "总工时", "个人工资", "单位养老", "单位失业", "单位工伤", "单位生育", "单位医疗", "单位公积金"])
-
     rows = sorted(dict.items(), key=lambda item: item[0])
     sumRow = ['累加', 0.0] + [0.0] * PAYINFO_ITEM_NUM
 
