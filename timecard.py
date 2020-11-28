@@ -53,6 +53,7 @@ def isEmptyCell(cell):
 
 
 def updateResultDict(prjOrContractResult, employeeResult, prjType, name, code, hours):
+    code = str(code)
     if code not in prjOrContractResult:
         prjOrContractResult[code] = {
             "hours": hours,
