@@ -34,13 +34,17 @@ def loadPayInfo(sheet):
     result = {}
     for i in range(PAYINFO_START_ROW, sheet.max_row + 1):
         print("\r预处理薪资：{}".format(i), end='')
-        name = sheet.cell(row=i, column=PAYINFO_NAME_COLUMN).value
+        nameCell = sheet.cell(row=i, column=PAYINFO_NAME_COLUMN)
+        if isEmptyCell(nameCell):
+            print("\r发现空行，结束读表")
+            return result
+        name = nameCell.value
         result[name] = []
-        for j in range(PAYINFO_START_COLUMN, sheet.max_column + 1):
+        for j in range(PAYINFO_START_COLUMN, PAYINFO_ITEM_NUM + 3):
             try:
                 payItem = float(sheet.cell(row=i, column=j).value)
             except Exception as e:
-                print("\r薪资表包含无效数字：{}".format(sheet.cell(row=i, column=j).value))
+                print("\r薪资表包含无效数字：{} {}".format(name, sheet.cell(row=i, column=j).value))
                 sys.exit(0)
             result[name].append(payItem)
     # print(result)
@@ -49,7 +53,7 @@ def loadPayInfo(sheet):
 
 
 def isEmptyCell(cell):
-    return cell.value is None or cell.value == ""
+    return cell.value is None or len(str(cell.value).strip()) == 0
 
 
 def updateResultDict(prjOrContractResult, employeeResult, prjType, name, code, hours):
