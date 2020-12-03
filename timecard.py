@@ -105,7 +105,7 @@ def processSource(wb, fileName):
             hourCell = timeRecordsSheet.cell(row=i, column=TIMERECORDS_TIME_COLUMN)
             hours = float(hourCell.value)
         except Exception as e:
-            print("\r忽略无效工时记录：{}".format(i, name, hourCell.value))
+            print("\r忽略无效工时记录：{} {} {}".format(i, name, hourCell.value))
             continue
 
         if name not in employeeDict:
@@ -172,7 +172,32 @@ def processSource(wb, fileName):
     updateTarget(wb, resultContractSheetName, contractResultDict)
     wb.save(outputPath + fileName)
     print("\n输出结果至：{}".format(outputPath + fileName))
+    print("\n do some addition check")
 
+    # check if pay table has unused employee
+    def checkUnusedPay(payDict, prjType):
+        unusedNameSet = set()
+        prjTypeKey = "prjDict"
+        if prjType == 1:
+            prjTypeKey = "contractDict"
+
+        for payName in payDict:
+            if payName not in employeeDict:
+                unusedNameSet.add(payName)
+            elif not employeeDict[payName][prjTypeKey]:
+                print("\r 该员工 {} 未记录工时在 {}".format(payName, prjTypeKey))
+                unusedNameSet.add(payName)
+        return unusedNameSet
+
+    if contractResultDict:
+        contractUnusedNames = checkUnusedPay(contractPayInfo, 1)
+        if len(contractUnusedNames) > 0:
+            print("\r 未使用的实施人员：{}".format(contractUnusedNames))
+
+    if projectResultDict:
+        prjUnusedNames = checkUnusedPay(projectPayInfo, 0)
+        if len(prjUnusedNames) > 0:
+            print("\r 未使用的项目人员：{}".format(prjUnusedNames))
 
 def updateTarget(wb, title, dict):
     targetSheet = wb.create_sheet(title=title)
